@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Whiff ops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <strong>Whiff ops</strong>
+  </div>
+  <div class="conn">
+    <input id="api" type="url" placeholder="https://whiff-api-production.up.railway.app" spellcheck="false" autocomplete="off">
+    <input id="token" type="password" placeholder="OPS_TOKEN" autocomplete="off">
+    <button id="connect" class="primary">Connect</button>
+    <span id="status" class="status" role="status"></span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button role="tab" data-tab="overview" class="on">Overview</button>
+  <button role="tab" data-tab="review">Review</button>
+  <button role="tab" data-tab="people">People</button>
+  <button role="tab" data-tab="circles">Circles</button>
+  <button role="tab" data-tab="passes">Passes</button>
+</nav>
+
+<main>
+  <!-- ---------------------------------------------------------- overview -->
+  <section id="overview" class="tab on">
+    <div id="overview-cards" class="cards"></div>
+    <div id="agents"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------ review -->
+  <section id="review" class="tab">
+    <p class="lede">
+      Two queues, and both exist because what is behind them reaches a real
+      person unread otherwise. A scouted row carries a link you open. A challenge
+      is text written <em>about one person</em>, with nothing to check it against
+      except somebody reading it.
+    </p>
+    <h2>Challenges</h2>
+    <div id="challenge-queue" class="queue"></div>
+    <h2>Inventory</h2>
+    <div id="inventory-queue" class="queue"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------ people -->
+  <section id="people" class="tab">
+    <div class="toolbar">
+      <select id="state-filter">
+        <option value="">Every state</option>
+        <option>ONBOARDING</option><option>WAITING</option><option>IN_CIRCLE</option>
+        <option>CIRCLE_DONE</option><option>PAUSED</option><option>DORMANT</option>
+      </select>
+      <input id="people-search" placeholder="Name or email" autocomplete="off">
+      <span class="grow"></span>
+      <button id="propose-open" class="primary" disabled>Place four in a Circle…</button>
+    </div>
+    <p class="hint" id="propose-hint">Tick exactly four waiting people.</p>
+    <div id="people-list" class="rows"></div>
+  </section>
+
+  <!-- ----------------------------------------------------------- circles -->
+  <section id="circles" class="tab">
+    <div id="circle-list" class="rows"></div>
+    <div id="circle-detail"></div>
+  </section>
+
+  <!-- ------------------------------------------------------------ passes -->
+  <section id="passes" class="tab">
+    <p class="lede">
+      Each pass is idempotent and safe to run twice — a property the engine
+      guarantees, not something these buttons add. Firing one by hand is the
+      difference between "wait fifteen minutes and see" and a request.
+    </p>
+    <div class="cards" id="pass-buttons"></div>
+    <pre id="pass-out" class="out" hidden></pre>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="./app.js"></script>
+</body>
+</html>

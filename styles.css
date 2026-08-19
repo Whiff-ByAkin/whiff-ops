@@ -1,0 +1,187 @@
+/*
+ * The console's own palette, taken from the product's.
+ *
+ * `Design/WhiffColor.swift` is the source: warm paper rather than white, ink
+ * rather than black, and no accent hue — the product's rule is that a colour on
+ * the interface is a brand colour, and a colour on a thing that would have one
+ * in the world is that thing being itself. Wax red is the seal, and it is the
+ * only red here: it marks the two controls that take something away.
+ *
+ * This is a founders' tool and it is deliberately plain. It never renders
+ * Whiff's voice — everything a member reads is generated, and what the reviewer
+ * sees here is that text verbatim so a judgement is made against the real thing.
+ */
+:root {
+  --ground: #FBF8F5;
+  --lift: #F4EEE9;
+  --hairline: #E5DCD6;
+  --stone: #B8ADAB;
+  --ink: #241A15;
+  --ink-muted: #6B5A50;
+  --ink-faint: #9A8B81;
+  --foil: #7A6428;
+  --wax: #9A2A1F;
+  --ok: #2F6B4F;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 15px/1.55 "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------- the bar */
+
+.bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+  padding: .8rem clamp(.9rem, 3vw, 2rem);
+  background: var(--ground);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.brand { display: flex; align-items: center; gap: .55rem; font-size: 1rem; }
+
+/* Four dots, like the app's mark. */
+.mark {
+  width: 18px; height: 18px; flex: none;
+  background:
+    radial-gradient(circle at 50% 16%, var(--ink) 3.2px, transparent 3.4px),
+    radial-gradient(circle at 16% 50%, var(--ink) 3.2px, transparent 3.4px),
+    radial-gradient(circle at 84% 50%, var(--ink) 3.2px, transparent 3.4px),
+    radial-gradient(circle at 50% 84%, var(--ink) 3.2px, transparent 3.4px);
+}
+
+.conn { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-left: auto; }
+
+input, select, textarea {
+  font: inherit; color: var(--ink);
+  background: var(--ground);
+  border: 1px solid var(--stone); border-radius: 6px;
+  padding: .42rem .6rem;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid var(--foil); outline-offset: 2px;
+}
+#api { width: min(30ch, 46vw); }
+#token { width: min(20ch, 32vw); }
+
+.status { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .74rem; color: var(--ink-muted); }
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--wax); }
+
+/* ------------------------------------------------------------- controls */
+
+button {
+  font: 500 .86rem/1 "IBM Plex Sans", sans-serif;
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--stone); border-radius: 999px;
+  padding: .48rem .9rem; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--ink); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+button.danger { color: var(--wax); border-color: var(--wax); }
+button.small { padding: .34rem .68rem; font-size: .78rem; }
+
+/* ----------------------------------------------------------------- tabs */
+
+.tabs {
+  display: flex; gap: .3rem; overflow-x: auto;
+  padding: .6rem clamp(.9rem, 3vw, 2rem) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.tabs button { border: 0; border-radius: 0; border-bottom: 2px solid transparent; color: var(--ink-muted); }
+.tabs button.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+main { padding: 1.4rem clamp(.9rem, 3vw, 2rem) 5rem; max-width: 1100px; }
+.tab { display: none; }
+.tab.on { display: block; }
+
+h2 {
+  font: 600 1.05rem/1.2 "IBM Plex Sans", sans-serif;
+  margin: 2rem 0 .7rem; padding-bottom: .4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+.lede { color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.2rem; }
+.hint { color: var(--ink-faint); font-size: .8rem; margin: .1rem 0 .9rem; }
+
+/* ---------------------------------------------------------------- cards */
+
+.cards { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+
+.card {
+  border: 1px solid var(--hairline); border-radius: 8px;
+  padding: .8rem .9rem; background: var(--lift);
+}
+.card .k {
+  font-family: "IBM Plex Mono", monospace; font-size: .68rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-muted);
+}
+.card .v { font: 600 1.6rem/1.1 "Newsreader", Georgia, serif; margin-top: .25rem; font-variant-numeric: tabular-nums; }
+
+/* ----------------------------------------------------------------- rows */
+
+.rows { display: flex; flex-direction: column; }
+
+.row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .8rem;
+  padding: .7rem .2rem; border-bottom: 1px solid var(--hairline);
+}
+.row .name { font-weight: 600; }
+.row .meta { color: var(--ink-muted); font-size: .82rem; }
+.row .grow, .toolbar .grow { flex: 1; }
+
+.pill {
+  font-family: "IBM Plex Mono", monospace; font-size: .68rem;
+  letter-spacing: .06em; border: 1px solid var(--hairline);
+  border-radius: 999px; padding: .16rem .5rem; color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .4rem; }
+
+/* --------------------------------------------------------------- queues */
+
+.queue { display: flex; flex-direction: column; gap: .8rem; }
+
+.item {
+  border: 1px solid var(--hairline); border-left: 2px solid var(--foil);
+  border-radius: 0 8px 8px 0; padding: .9rem 1rem; background: var(--lift);
+}
+.item h3 { font: 600 1rem/1.3 "Newsreader", Georgia, serif; margin: 0 0 .3rem; }
+.item .body { max-width: 68ch; }
+.item .why { color: var(--ink-muted); font-size: .87rem; margin: .45rem 0 0; }
+.item .acts { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; align-items: center; }
+.item a { color: var(--foil); }
+
+.empty { color: var(--ink-faint); font-style: italic; padding: .6rem 0; }
+
+/* -------------------------------------------------------------- detail */
+
+.detail { border: 1px solid var(--hairline); border-radius: 8px; padding: 1rem; margin-top: 1.2rem; }
+.detail h2 { margin-top: 0; }
+
+.out {
+  font-family: "IBM Plex Mono", monospace; font-size: .76rem; line-height: 1.6;
+  background: var(--lift); border: 1px solid var(--hairline); border-radius: 6px;
+  padding: .8rem .9rem; overflow-x: auto; max-height: 22rem; margin-top: 1rem;
+}
+
+/* --------------------------------------------------------------- toast */
+
+.toast {
+  position: fixed; left: 50%; bottom: 1.4rem; transform: translateX(-50%) translateY(1.5rem);
+  background: var(--ink); color: var(--ground);
+  padding: .6rem 1rem; border-radius: 999px; font-size: .85rem;
+  opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+  max-width: 90vw;
+}
+.toast.up { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.bad { background: var(--wax); }
+
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
