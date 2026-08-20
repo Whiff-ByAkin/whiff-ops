@@ -27,14 +27,60 @@
  * `CORS_ORIGINS=https://<this-deployment>` or every request here fails at the
  * browser with a message that does not say why. See the README.
  *
- * ## The token
+ * ## Opening it is one step, and it used to be three
  *
- * `OPS_TOKEN`, kept in `sessionStorage` and gone when the tab closes. Not
- * `localStorage`: this token is every founder power in the product, and a
- * bearer credential that survives a closed laptop is a credential somebody
- * else's session inherits. It is never put in a URL, so it cannot land in a
- * history entry, a referrer, or a server log.
+ * The API URL is a constant now. It is on the front of every request the app
+ * makes and is in the App Store binary; typing it into a form was asking for
+ * something already public.
+ *
+ * The token is pasted **once, ever**, and remembered after that — open the page
+ * and it is already connected. `localStorage` rather than `sessionStorage`,
+ * which is a deliberate downgrade in safety bought for exactly that: a console
+ * that asks for a credential every time is one nobody opens to check a queue.
+ *
+ * ## Why the token is not simply in this file
+ *
+ * It would be one step fewer and it is the one line that must not be written.
+ * This page is on the public internet — `whiff-ops.vercel.app` answers to
+ * anybody who types it, indexed or not — so a token in the source is `OPS_TOKEN`
+ * published. That token approves what reaches members, reads every user's row,
+ * places people in Circles and removes them, and rotating it means a Railway
+ * redeploy.
+ *
+ * "Only I use it" is a fact about intent, not about who can reach the URL.
+ *
+ * **The way to get to zero steps is to protect the PAGE, not to publish the
+ * key**: Vercel → Project → Settings → Deployment Protection. With the page
+ * behind that, baking the token in becomes defensible, because reaching the
+ * file already requires being you. Until then it is one paste, once.
  */
+
+/**
+ * Where the API is. Public, and on the front of every request the iOS client
+ * makes — there was never anything to keep here.
+ *
+ * **Overridable, and it has to be**, for two cases that are both real:
+ *
+ *   ?api=http://localhost:8080     drive a local API from this same page
+ *
+ * The override is remembered once used, so switching back to production is
+ * `?api=` with nothing after it. Without this the constant would be untestable
+ * against anything but the live database, which is the one place you do not
+ * want to be trying things — and it would strand the console entirely the day
+ * the Railway hostname changes.
+ */
+const DEFAULT_API = 'https://whiff-api-production.up.railway.app';
+
+const API = (() => {
+  const asked = new URLSearchParams(location.search).get('api');
+  if (asked !== null) {
+    const url = asked.trim().replace(/\/+$/, '');
+    if (url) localStorage.setItem('whiff.api', url);
+    else localStorage.removeItem('whiff.api');
+    return url || DEFAULT_API;
+  }
+  return localStorage.getItem('whiff.api') || DEFAULT_API;
+})();
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, text) => {
@@ -45,8 +91,8 @@ const el = (tag, cls, text) => {
 };
 
 const state = {
-  api: sessionStorage.getItem('whiff.api') || '',
-  token: sessionStorage.getItem('whiff.token') || '',
+  api: API,
+  token: localStorage.getItem('whiff.token') || '',
   connected: false,
   people: [],
   circles: [],
@@ -66,7 +112,7 @@ const state = {
  * error would be wrong half the time, so the message names both.
  */
 async function call(path, options = {}) {
-  if (!state.api) throw new Error('No API URL');
+  if (!state.token) throw new Error('No token');
   const res = await fetch(state.api.replace(/\/+$/, '') + '/ops' + path, {
     ...options,
     headers: {
@@ -135,24 +181,57 @@ function setStatus(text, kind) {
  * Connect
  * ------------------------------------------------------------------ */
 
-async function connect() {
-  state.api = $('#api').value.trim();
-  state.token = $('#token').value.trim();
-  if (!state.api || !state.token) return toast('API URL and token, both', true);
+/**
+ * Connect with whatever token we have — the saved one, or one just pasted.
+ *
+ * A bad saved token is dropped rather than kept: it will fail on every request
+ * afterwards, and a console that stays broken until somebody thinks to clear
+ * their storage is worse than one that asks again.
+ */
+async function connect(pasted) {
+  if (pasted !== undefined) state.token = pasted.trim();
+  if (!state.token) { showUnlock(); return; }
 
   setStatus('connecting…');
   try {
     const meta = await call('/meta');
     state.connected = true;
-    sessionStorage.setItem('whiff.api', state.api);
-    sessionStorage.setItem('whiff.token', state.token);
-    setStatus(`connected · ${meta?.actor_version ?? 'ok'}`, 'ok');
+    localStorage.setItem('whiff.token', state.token);
+    $('#unlock').hidden = true;
+    $('#forget').hidden = false;
+    // Naming the host matters: a page pointed at localhost looks exactly like
+    // one pointed at production, and the buttons here are not reversible.
+    const where = API === DEFAULT_API ? 'production' : new URL(API).host;
+    setStatus(`connected · ${where}`, 'ok');
     await refresh();
   } catch (e) {
     state.connected = false;
+    // Only a rejected token is forgotten. A CORS failure or a sleeping server
+    // is not the token's fault, and clearing it there would make somebody
+    // re-paste a perfectly good credential to fix a network problem.
+    if (/401|403|unauthor/i.test(e.message)) {
+      localStorage.removeItem('whiff.token');
+      state.token = '';
+    }
+    showUnlock();
     setStatus('not connected', 'bad');
     toast(e.message, true);
   }
+}
+
+function showUnlock() {
+  $('#unlock').hidden = false;
+  $('#forget').hidden = true;
+  $('#token').value = '';
+}
+
+function forget() {
+  localStorage.removeItem('whiff.token');
+  state.token = '';
+  state.connected = false;
+  showUnlock();
+  setStatus('forgotten');
+  toast('Token removed from this browser');
 }
 
 async function refresh() {
@@ -564,9 +643,9 @@ function renderPasses() {
  * Wiring
  * ------------------------------------------------------------------ */
 
-$('#api').value = state.api;
-$('#token').value = state.token;
-$('#connect').onclick = connect;
+$('#connect').onclick = () => connect($('#token').value);
+$('#token').onkeydown = (e) => { if (e.key === 'Enter') connect($('#token').value); };
+$('#forget').onclick = forget;
 $('#propose-open').onclick = (e) => proposeCircle(e.currentTarget);
 $('#state-filter').onchange = loadPeople;
 $('#people-search').oninput = renderPeople;
@@ -581,7 +660,6 @@ for (const tab of document.querySelectorAll('#tabs button')) {
 }
 
 renderPasses();
-setStatus('not connected');
-// A token in sessionStorage means this tab already connected once; a reload
-// should not ask again.
-if (state.api && state.token) connect();
+setStatus('connecting…');
+// Remembered from last time, so opening the page is the whole of opening it.
+if (state.token) connect(); else showUnlock();

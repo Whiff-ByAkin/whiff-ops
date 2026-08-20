@@ -18,10 +18,17 @@
     <strong>Whiff ops</strong>
   </div>
   <div class="conn">
-    <input id="api" type="url" placeholder="https://whiff-api-production.up.railway.app" spellcheck="false" autocomplete="off">
-    <input id="token" type="password" placeholder="OPS_TOKEN" autocomplete="off">
-    <button id="connect" class="primary">Connect</button>
+    <!--
+      Shown once, ever. After the first paste the token is remembered and this
+      whole block is hidden — see `unlock` in app.js for why the token is not
+      simply baked into this file.
+    -->
+    <span id="unlock" hidden>
+      <input id="token" type="password" placeholder="Paste OPS_TOKEN once" autocomplete="off">
+      <button id="connect" class="primary">Go</button>
+    </span>
     <span id="status" class="status" role="status"></span>
+    <button id="forget" class="small" hidden title="Remove the saved token from this browser">Forget</button>
   </div>
 </header>
 

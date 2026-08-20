@@ -60,13 +60,37 @@ Without this variable the console loads, connects to nothing, and says so.
 
 ## Using it
 
-Paste the API's base URL and `OPS_TOKEN` into the bar and press **Connect**.
+Open it. That is the whole of it after the first time.
 
-The token lives in `sessionStorage` and is gone when the tab closes. Not
-`localStorage`: it is every founder power in the product, and a bearer
-credential that survives a closed laptop is one somebody else's session
-inherits. It is never put in a URL, so it cannot land in a history entry, a
-referrer or a server log.
+The API URL is a constant in `app.js` — it is on the front of every request the
+iOS client makes and is in the App Store binary, so there was never anything to
+keep. The `OPS_TOKEN` is pasted **once** and remembered in `localStorage`, so
+every visit after that is already connected. **Forget** clears it.
+
+A token that is rejected is dropped rather than kept, because a console that
+stays broken until somebody thinks to clear their browser storage is worse than
+one that asks again. A network or CORS failure does *not* clear it — that is not
+the token's fault, and making somebody re-paste a good credential to fix a
+server problem is how they end up believing the token is the problem.
+
+### Why the token is not simply in the file
+
+It would be one step fewer, and it is the one line that must not be written.
+This page is on the public internet: `whiff-ops.vercel.app` answers to anybody
+who types it, indexed or not. A token in the source is `OPS_TOKEN` published —
+and that token approves what reaches members, reads every user's row, places
+people in Circles and removes them. Rotating it means a Railway redeploy.
+
+*"Only I use it"* is a fact about intent, not about who can reach the URL.
+
+**The way to zero steps is to protect the PAGE, not to publish the key:**
+
+```
+Vercel → Project → Settings → Deployment Protection
+```
+
+With the page behind that, reaching the file already requires being you, and
+baking the token in becomes defensible. Until then it is one paste, once.
 
 ## What it gates, and what it deliberately cannot do
 
